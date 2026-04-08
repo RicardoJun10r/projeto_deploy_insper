@@ -1,5 +1,13 @@
 # diabetes
 
+## Sobre
+
+Projeto do curso de Pós graduação do Insper, da disciplina Data Science Deploy
+
+## Objetivo
+
+Construir um modelo, para predição de incidência de diabetes, usando o dataset dado para este projeto
+
 [![Powered by Kedro](https://img.shields.io/badge/powered_by-kedro-ffc900?logo=kedro)](https://kedro.org)
 
 ## Overview
