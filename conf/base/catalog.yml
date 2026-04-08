@@ -2,3 +2,17 @@
 #
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://docs.kedro.org/en/stable/catalog-data/introduction/#data-catalog
+
+# Data Engineering
+raw_diabetes_data:
+  type: pandas.CSVDataset
+  filepath: data/01_raw/diabetes-dataset-modelling.csv
+  load_args:
+    sep: ","
+  metadata:
+    kedro-viz:
+      layer: raw
+
+cleaned_diabetes_data:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/cleaned-diabetes-modelling.csv
