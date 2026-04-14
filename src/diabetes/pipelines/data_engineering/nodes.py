@@ -6,45 +6,72 @@ generated using Kedro 1.3.1
 import logging
 from typing import Any
 
+import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 
 logger = logging.getLogger(__name__)
 
 
 def show_data(raw_diabetes_data: pd.DataFrame) -> None:
-    print("##### Dimensão #####")
-    print(raw_diabetes_data.shape)
-    print("##### Tipos #####")
-    print(raw_diabetes_data.dtypes)
-    print("##### Início #####")
-    print(raw_diabetes_data.head())
-    print("##### Final #####")
-    print(raw_diabetes_data.tail())
-    print("##### NA #####")
-    print(raw_diabetes_data.isnull().sum())
-    print("##### Quantiles #####")
-    print(raw_diabetes_data.quantile([0, 0.05, 0.50, 0.95, 0.99, 1]).T)
+    logger.info("##### Dimensão #####")
+    logger.info(raw_diabetes_data.shape)
+    logger.info("##### Tipos #####")
+    logger.info(raw_diabetes_data.dtypes)
+    logger.debug("##### Início #####")
+    logger.debug(raw_diabetes_data.head())
+    logger.debug("##### Final #####")
+    logger.debug(raw_diabetes_data.tail())
+    logger.info("##### NA #####")
+    logger.info(raw_diabetes_data.isnull().sum())
+    logger.info("##### Quantiles #####")
+    logger.info(raw_diabetes_data.quantile([0, 0.05, 0.50, 0.95, 0.99, 1]).T)
+
+
+def cat_summary(dataframe, col_name, plot=False):
+    logger.info(
+        pd.DataFrame(
+            {
+                col_name: dataframe[col_name].value_counts(),
+                "Razao": 100 * dataframe[col_name].value_counts() / len(dataframe),
+            }
+        )
+    )
+    logger.info(80 * "=")
+    if plot:
+        sns.countplot(x=dataframe[col_name], data=dataframe)
+        plt.show(block=True)
 
 
 def detecting_categorical_numerical_variables(raw_diabetes_data: pd.DataFrame) -> None:
     df = raw_diabetes_data.copy()
+    NUM_CAT = 10
+    CAT_CAR = 20
     cat_cols = [col for col in df.columns if df[col].dtypes == "O"]
     num_but_cat = [
-        col for col in df.columns if df[col].nunique() < 10 and df[col].dtypes != "O"
+        col
+        for col in df.columns
+        if df[col].nunique() < NUM_CAT and df[col].dtypes != "O"
     ]
     cat_but_car = [
-        col for col in df.columns if df[col].nunique() > 20 and df[col].dtypes == "O"
+        col
+        for col in df.columns
+        if df[col].nunique() > CAT_CAR and df[col].dtypes == "O"
     ]
     cat_cols = cat_cols + num_but_cat
     cat_cols = [col for col in cat_cols if col not in cat_but_car]
     num_cols = [col for col in df.columns if df[col].dtypes != "O"]
     num_cols = [col for col in num_cols if col not in num_but_cat]
-    print(f"Observações: {df.shape[0]}")
-    print(f"Variáveis: {df.shape[1]}")
-    print(f"cat_cols: {len(cat_cols)}")
-    print(f"num_cols: {len(num_cols)}")
-    print(f"cat_but_car: {len(cat_but_car)}")
-    print(f"num_but_cat: {len(num_but_cat)}")
+    logger.info(f"Observações: {df.shape[0]}")
+    logger.info(f"Variáveis: {df.shape[1]}")
+    logger.info(f"cat_cols: {len(cat_cols)}")
+    logger.info(f"num_cols: {len(num_cols)}")
+    logger.info(f"cat_but_car: {len(cat_but_car)}")
+    logger.info(f"num_but_cat: {len(num_but_cat)}")
+    logger.info(80 * "=")
+    logger.info(cat_summary(df, "Outcome", plot=True))
+    for col in cat_cols:
+        cat_summary(df, col, plot=True)
 
 
 def clean_data(
