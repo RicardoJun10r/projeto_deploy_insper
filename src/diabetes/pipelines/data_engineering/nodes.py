@@ -44,34 +44,34 @@ def cat_summary(dataframe, col_name, plot=False):
 
 
 def detecting_categorical_numerical_variables(raw_diabetes_data: pd.DataFrame) -> None:
-    df = raw_diabetes_data.copy()
+    raw_df = raw_diabetes_data.copy()
     NUM_CAT = 10
     CAT_CAR = 20
-    cat_cols = [col for col in df.columns if df[col].dtypes == "O"]
+    cat_cols = [col for col in raw_df.columns if raw_df[col].dtypes == "O"]
     num_but_cat = [
         col
-        for col in df.columns
-        if df[col].nunique() < NUM_CAT and df[col].dtypes != "O"
+        for col in raw_df.columns
+        if raw_df[col].nunique() < NUM_CAT and raw_df[col].dtypes != "O"
     ]
     cat_but_car = [
         col
-        for col in df.columns
-        if df[col].nunique() > CAT_CAR and df[col].dtypes == "O"
+        for col in raw_df.columns
+        if raw_df[col].nunique() > CAT_CAR and raw_df[col].dtypes == "O"
     ]
     cat_cols = cat_cols + num_but_cat
     cat_cols = [col for col in cat_cols if col not in cat_but_car]
-    num_cols = [col for col in df.columns if df[col].dtypes != "O"]
+    num_cols = [col for col in raw_df.columns if raw_df[col].dtypes != "O"]
     num_cols = [col for col in num_cols if col not in num_but_cat]
-    logger.info(f"Observações: {df.shape[0]}")
-    logger.info(f"Variáveis: {df.shape[1]}")
+    logger.info(f"Observações: {raw_df.shape[0]}")
+    logger.info(f"Variáveis: {raw_df.shape[1]}")
     logger.info(f"cat_cols: {len(cat_cols)}")
     logger.info(f"num_cols: {len(num_cols)}")
     logger.info(f"cat_but_car: {len(cat_but_car)}")
     logger.info(f"num_but_cat: {len(num_but_cat)}")
     logger.info(80 * "=")
-    logger.info(cat_summary(df, "Outcome", plot=True))
+    logger.info(cat_summary(raw_df, "Outcome", plot=True))
     for col in cat_cols:
-        cat_summary(df, col, plot=True)
+        cat_summary(raw_df, col, plot=True)
 
 
 def clean_data(
