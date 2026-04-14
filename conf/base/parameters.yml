@@ -1,5 +1,7 @@
 columns:
   target: "Outcome"
+  categorical:
+    - "Outcome"
   numerical:
     - "Pregnancies"
     - "Glucose"
