@@ -4,6 +4,7 @@
 # Link: https://docs.kedro.org/en/stable/catalog-data/introduction/#data-catalog
 
 # Data Engineering
+
 raw_diabetes_data:
   type: pandas.CSVDataset
   filepath: data/01_raw/diabetes-dataset-modelling.csv
@@ -16,3 +17,59 @@ raw_diabetes_data:
 cleaned_diabetes_data:
   type: pandas.CSVDataset
   filepath: data/02_intermediate/cleaned-diabetes-modelling.csv
+
+missing_handled_data:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/missing-handled-modelling.csv
+  metadata: { kedro-viz: { layer: intermediate } }
+
+outlier_handled_data:
+  type: pandas.CSVDataset
+  filepath: data/03_primary/outlier-handled-modelling.csv
+  metadata: { kedro-viz: { layer: primary } }
+
+# Feature Engineering
+
+feature_engineered_data:
+  type: pandas.CSVDataset
+  filepath: data/04_feature/feature-engineered-modelling.csv
+  metadata: {kedro-viz:{layer:feature}}
+
+encode_data:
+  type: pandas.CSVDataset
+  filepath: data/04_feature/encoded-modelling.csv
+  metadata: {kedro-viz:{layer:feature}}
+
+model_input_data:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/model-input-modelling.csv
+  metadata: {kedro-viz:{layer:model_input}}
+
+feature_scaler:
+  type: pickle.PickleDataset
+  filepath: data/06_models/feature-scaler-modelling.pkl
+
+# Base Modelling
+base_X_train:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/base_X_train.csv
+
+base_X_test:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/base_X_test.csv
+
+base_y_train:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/base_y_train.csv
+
+base_y_test:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/base_y_test.csv
+
+base_trained_models:
+  type: pickle.PickleDataset
+  filepath: data/06_models/base_trained_models.pkl
+
+base_model_metrics:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/base_model_metrics.csv
