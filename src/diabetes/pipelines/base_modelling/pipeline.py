@@ -4,7 +4,12 @@ generated using Kedro 1.3.1
 """
 
 from kedro.pipeline import Node, Pipeline  # noqa
-from .nodes import split_data_base, train_base_models, evaluate_base_models, plot_base_model_metrics
+from .nodes import (
+    split_data_base,
+    train_base_models,
+    evaluate_base_models,
+    plot_base_model_metrics,
+)
 
 
 def create_pipeline(**kwargs) -> Pipeline:
@@ -18,13 +23,23 @@ def create_pipeline(**kwargs) -> Pipeline:
             ),
             Node(
                 func=train_base_models,
-                inputs=["base_X_train", "base_y_train"],
+                inputs=[
+                    "base_X_train",
+                    "base_y_train",
+                    "params:models",
+                    "params:model_params",
+                ],
                 outputs="base_trained_models",
                 name="train_base_models",
             ),
             Node(
                 func=evaluate_base_models,
-                inputs=["base_trained_models", "base_X_test", "base_y_test"],
+                inputs=[
+                    "base_trained_models",
+                    "base_X_test",
+                    "base_y_test",
+                    "params:models",
+                ],
                 outputs="base_model_metrics",
                 name="evaluate_base_models",
             ),

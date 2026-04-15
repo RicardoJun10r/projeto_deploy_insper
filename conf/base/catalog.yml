@@ -73,3 +73,37 @@ base_trained_models:
 base_model_metrics:
   type: pandas.CSVDataset
   filepath: data/08_reporting/base_model_metrics.csv
+
+# Data Science
+X_train:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/X_train.csv
+
+X_test:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/X_test.csv
+
+y_train:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/y_train.csv
+
+y_test:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/y_test.csv
+
+trained_models:
+  type: pickle.PickleDataset
+  filepath: data/06_models/trained_models.pkl
+
+model_metrics:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/model_metrics.csv
+
+# Hyperparameter Tuning
+tuned_models:
+  type: pickle.PickleDataset
+  filepath: data/06_models/tuned_models.pkl
+
+tuned_model_metrics:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tuned_model_metrics.csv

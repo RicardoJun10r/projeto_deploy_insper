@@ -1,5 +1,5 @@
 """
-This is a boilerplate pipeline 'base_modelling'
+This is a boilerplate pipeline 'data_science'
 generated using Kedro 1.3.1
 """
 
@@ -28,7 +28,6 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import RobustScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
@@ -36,18 +35,17 @@ from xgboost import XGBClassifier
 logger = logging.getLogger(__name__)
 
 
-def split_data_base(
-    outlier_handled_data: pd.DataFrame,
+def split_data(
+    model_input_data: pd.DataFrame,
     split: dict[str, Any],
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    target_col = "Outcome"
-    X = outlier_handled_data.drop(columns=[target_col])
-    y = outlier_handled_data[target_col]
-    scaler = RobustScaler()
-    X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=X.columns, index=X.index)
+    target_col = "OUTCOME"
+    X = model_input_data.drop(columns=[target_col])
+    y = model_input_data[target_col]
     X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y, test_size=split["test"], random_state=split["random_state"]
+        X, y, test_size=split["test"], random_state=split["random_state"]
     )
+    logger.info("Split: train=%d, test=%d", len(X_train), len(X_test))
     return X_train, X_test, y_train.to_frame(), y_test.to_frame()
 
 
@@ -72,62 +70,54 @@ _METRIC_REGISTRY: dict[str, Callable[[np.ndarray, np.ndarray, np.ndarray], float
 }
 
 
-def train_base_models(
-    base_X_train: pd.DataFrame,
-    base_y_train: pd.DataFrame,
+def train_models(
+    X_train: pd.DataFrame,
+    y_train: pd.DataFrame,
     models: dict[str, Any],
     model_params: dict[str, Any],
 ) -> dict[str, ClassifierMixin]:
-    y = base_y_train.iloc[:, 0]
+    y: pd.Series = y_train.iloc[:, 0]
     trained: dict[str, ClassifierMixin] = {}
     for name in models["names"]:
-        params = model_params.get(name, {})
-        model = _MODEL_REGISTRY[name](**params)
-        model.fit(base_X_train, y)
+        params: dict[str, Any] = model_params.get(name, {})
+        model: ClassifierMixin = _MODEL_REGISTRY[name](**params)
+        model.fit(X_train, y)
         trained[name] = model
-        logger.info("Modelo base treinado: %s (params: %s)", name, params)
+        logger.info("Modelo treinado: %s (params: %s)", name, params)
     return trained
 
 
-def evaluate_base_models(
-    base_trained_models: dict[str, ClassifierMixin],
-    base_X_test: pd.DataFrame,
-    base_y_test: pd.DataFrame,
+def evaluate_models(
+    trained_models: dict[str, ClassifierMixin],
+    X_test: pd.DataFrame,
+    y_test: pd.DataFrame,
     models: dict[str, Any],
 ) -> pd.DataFrame:
-    y_true = base_y_test.iloc[:, 0]
-    results = []
-    for name, model in base_trained_models.items():
-        y_pred = model.predict(base_X_test)
-        y_prob = model.predict_proba(base_X_test)[:, 1]
+    y_true: pd.Series = y_test.iloc[:, 0]
+    results: list[dict[str, Any]] = []
+    for name, model in trained_models.items():
+        y_pred: np.ndarray = model.predict(X_test)
+        y_prob: np.ndarray = model.predict_proba(X_test)[:, 1]
         row: dict[str, Any] = {"Model": name}
         for metric in models["metrics"]:
             row[metric] = round(_METRIC_REGISTRY[metric](y_true, y_pred, y_prob), 4)
         results.append(row)
-        logger.info("Métricas base [%s]: %s", name, row)
+        logger.info("Métricas [%s]: %s", name, row)
     return pd.DataFrame(results)
 
 
-def plot_base_model_metrics(base_model_metrics: pd.DataFrame) -> None:
-    logger.info("\n%s", base_model_metrics.to_string(index=False))
+def plot_model_metrics(model_metrics: pd.DataFrame) -> None:
+    logger.info("\n%s", model_metrics.to_string(index=False))
 
-    df = base_model_metrics.copy()
-
-    HEIGHT_LIMIT_BAR = 0.55
-
-    df = df.sort_values(by="AUC", ascending=False)
-
+    HEIGHT_LIMIT_BAR: float = 0.55
+    df: pd.DataFrame = model_metrics.sort_values(by="AUC", ascending=False)
     metrics: list[str] = df.select_dtypes(include=[np.number]).columns.tolist()
 
-    df_melted = df.melt(
-        id_vars="Model",
-        value_vars=metrics,
-        var_name="Metric",
-        value_name="Score",
+    df_melted: pd.DataFrame = df.melt(
+        id_vars="Model", value_vars=metrics, var_name="Metric", value_name="Score"
     )
 
     sns.set_theme(style="whitegrid")
-
     plt.figure(figsize=(20, 10))
     ax = sns.barplot(
         data=df_melted,
@@ -140,13 +130,18 @@ def plot_base_model_metrics(base_model_metrics: pd.DataFrame) -> None:
     )
 
     for container in ax.containers:
-        labels = [
+        labels: list[str] = [
             f"{bar.get_height():.3f}" if bar.get_height() >= HEIGHT_LIMIT_BAR else ""
             for bar in container
         ]
         ax.bar_label(container, labels=labels, fontsize=8, padding=2)
 
-    ax.set_title("Comparação dos Modelos Base", fontsize=16, weight="bold", pad=15)
+    ax.set_title(
+        "Comparação dos Modelos (com Feature Engineering)",
+        fontsize=16,
+        weight="bold",
+        pad=15,
+    )
     ax.set_xlabel("Métrica", fontsize=12)
     ax.set_ylabel("Score", fontsize=12)
     ax.set_ylim(0, 1.0)
@@ -154,7 +149,6 @@ def plot_base_model_metrics(base_model_metrics: pd.DataFrame) -> None:
     plt.legend(
         title="Modelo", bbox_to_anchor=(1.02, 1), loc="upper left", borderaxespad=0
     )
-
     ax.grid(axis="y", linestyle="--", alpha=0.4)
     sns.despine()
     plt.tight_layout()
